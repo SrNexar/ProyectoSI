@@ -1,0 +1,140 @@
+-- Script SQL para agregar funcionalidades a OPTISTOCK (PostgreSQL 9.3.25 compatible)
+
+-- 1. Tabla alertas_personalizadas
+CREATE TABLE IF NOT EXISTS alertas_personalizadas (
+    id SERIAL PRIMARY KEY,
+    producto_id INTEGER REFERENCES productos(id) ON DELETE CASCADE,
+    tipo_alerta VARCHAR(50) NOT NULL,
+    umbral DECIMAL(10,2) NOT NULL,
+    mensaje TEXT,
+    activa BOOLEAN DEFAULT TRUE,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Tabla historial_alertas
+CREATE TABLE IF NOT EXISTS historial_alertas (
+    id SERIAL PRIMARY KEY,
+    producto_id INTEGER REFERENCES productos(id) ON DELETE CASCADE,
+    tipo_alerta VARCHAR(50) NOT NULL,
+    mensaje TEXT,
+    nivel_urgencia VARCHAR(20) DEFAULT 'MEDIA',
+    estado VARCHAR(20) DEFAULT 'PENDIENTE',
+    fecha_generacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_resolucion TIMESTAMP
+);
+
+-- Agregar columna stock_actual si no existe
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'productos' AND column_name = 'stock_actual'
+    ) THEN
+        ALTER TABLE productos ADD COLUMN stock_actual INTEGER DEFAULT 0;
+    END IF;
+END $$;
+
+-- 3. Agregar columnas a productos si no existen
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns WHERE table_name = 'productos' AND column_name = 'stock_minimo'
+    ) THEN
+        ALTER TABLE productos ADD COLUMN stock_minimo INTEGER DEFAULT 10;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns WHERE table_name = 'productos' AND column_name = 'stock_maximo'
+    ) THEN
+        ALTER TABLE productos ADD COLUMN stock_maximo INTEGER DEFAULT 1000;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns WHERE table_name = 'productos' AND column_name = 'punto_reorden'
+    ) THEN
+        ALTER TABLE productos ADD COLUMN punto_reorden INTEGER DEFAULT 20;
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns WHERE table_name = 'productos' AND column_name = 'fecha_ultima_actualizacion'
+    ) THEN
+        ALTER TABLE productos ADD COLUMN fecha_ultima_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+    END IF;
+END $$;
+
+-- 4. Crear índices condicionalmente
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_productos_stock_minimo') THEN
+        CREATE INDEX idx_productos_stock_minimo ON productos(stock_actual, stock_minimo);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_productos_categoria') THEN
+        CREATE INDEX idx_productos_categoria ON productos(categoria);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_alertas_producto') THEN
+        CREATE INDEX idx_alertas_producto ON historial_alertas(producto_id);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_alertas_estado') THEN
+        CREATE INDEX idx_alertas_estado ON historial_alertas(estado);
+    END IF;
+END $$;
+
+-- 5. Función de trigger para timestamps
+CREATE OR REPLACE FUNCTION actualizar_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.fecha_actualizacion := CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 6. Trigger para alertas_personalizadas
+CREATE TRIGGER trigger_actualizar_alertas_personalizadas
+    BEFORE UPDATE ON alertas_personalizadas
+    FOR EACH ROW
+    EXECUTE PROCEDURE actualizar_timestamp();
+
+-- 7. Vista de alertas activas
+CREATE OR REPLACE VIEW vista_alertas_activas AS
+SELECT 
+    p.id,
+    p.nombre,
+    p.categoria,
+    p.stock_actual,
+    p.stock_minimo,
+    p.punto_reorden,
+    CASE 
+        WHEN p.stock_actual <= p.stock_minimo THEN 'CRITICO'
+        WHEN p.stock_actual <= p.punto_reorden THEN 'ALTO'
+        WHEN p.stock_actual <= (p.stock_minimo * 1.5) THEN 'MEDIO'
+        ELSE 'BAJO'
+    END AS nivel_alerta,
+    CASE 
+        WHEN p.stock_actual <= p.stock_minimo THEN 'Stock crítico - Reabastecer inmediatamente'
+        WHEN p.stock_actual <= p.punto_reorden THEN 'Stock bajo punto de reorden - Planificar pedido'
+        WHEN p.stock_actual <= (p.stock_minimo * 1.5) THEN 'Stock bajo - Monitorear de cerca'
+        ELSE 'Stock normal'
+    END AS mensaje_alerta,
+    p.fecha_ultima_actualizacion
+FROM productos p
+WHERE p.stock_actual <= (p.stock_minimo * 1.5)
+ORDER BY 
+    CASE 
+        WHEN p.stock_actual <= p.stock_minimo THEN 1
+        WHEN p.stock_actual <= p.punto_reorden THEN 2
+        WHEN p.stock_actual <= (p.stock_minimo * 1.5) THEN 3
+        ELSE 4
+    END,
+    p.stock_actual ASC;
+
+-- 8. Comentarios
+COMMENT ON TABLE alertas_personalizadas IS 'Alertas configuradas por el usuario';
+COMMENT ON TABLE historial_alertas IS 'Historial de alertas generadas';
+COMMENT ON VIEW vista_alertas_activas IS 'Vista con productos en estado crítico o bajo de stock';
+
+-- 9. Final
+SELECT 'OPTISTOCK actualizado correctamente' AS mensaje;
