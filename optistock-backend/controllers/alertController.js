@@ -1,5 +1,6 @@
 const pool = require('../models/db');
 const nodemailer = require('nodemailer');
+const PDFDocument = require('pdfkit');
 
 // Configurar transporter de email (opcional)
 const transporter = nodemailer.createTransport({
@@ -192,19 +193,37 @@ const obtenerDashboard = async (req, res) => {
     const categoriasAlertas = await pool.query(`
       SELECT 
         categoria,
-        COUNT(*) as productos_con_alertas,
+        COUNT(CASE WHEN stock_actual <= stock_minimo * 1.5 THEN 1 END) as productos_con_alertas,
         AVG(stock_actual) as promedio_stock_categoria
       FROM productos 
-      WHERE stock_actual <= stock_minimo * 1.5
+      WHERE categoria IS NOT NULL AND categoria != ''
       GROUP BY categoria
+      HAVING COUNT(CASE WHEN stock_actual <= stock_minimo * 1.5 THEN 1 END) > 0
       ORDER BY productos_con_alertas DESC
     `);
 
     const dashboard = {
-      estadisticas_generales: estadisticas.rows[0],
-      productos_criticos: productosCriticos.rows,
-      tendencia_alertas: tendenciaAlertas.rows,
-      categorias_con_alertas: categoriasAlertas.rows,
+      estadisticas_generales: {
+        ...estadisticas.rows[0],
+        total_productos: parseInt(estadisticas.rows[0].total_productos),
+        productos_criticos: parseInt(estadisticas.rows[0].productos_criticos),
+        productos_bajo_stock: parseInt(estadisticas.rows[0].productos_bajo_stock),
+        promedio_stock: parseFloat(estadisticas.rows[0].promedio_stock),
+        valor_total_inventario: parseFloat(estadisticas.rows[0].valor_total_inventario)
+      },
+      productos_criticos: productosCriticos.rows.map(p => ({
+        ...p,
+        porcentaje_deficit: parseFloat(p.porcentaje_deficit)
+      })),
+      tendencia_alertas: tendenciaAlertas.rows.map(t => ({
+        ...t,
+        alertas_generadas: parseInt(t.alertas_generadas)
+      })),
+      categorias_con_alertas: categoriasAlertas.rows.map(c => ({
+        ...c,
+        productos_con_alertas: parseInt(c.productos_con_alertas),
+        promedio_stock_categoria: parseFloat(c.promedio_stock_categoria)
+      })),
       fecha_actualizacion: new Date().toISOString()
     };
 
@@ -216,9 +235,84 @@ const obtenerDashboard = async (req, res) => {
   }
 };
 
+// Generar reporte de alertas en PDF
+const generarReporteAlertasPDF = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        p.nombre,
+        p.categoria,
+        p.stock_actual,
+        p.stock_minimo,
+        CASE 
+          WHEN p.stock_actual <= p.stock_minimo THEN 'CRITICO'
+          WHEN p.stock_actual <= (p.stock_minimo * 1.5) THEN 'BAJO'
+          ELSE 'NORMAL'
+        END as nivel_alerta
+      FROM productos p
+      WHERE p.stock_actual <= (p.stock_minimo * 1.5)
+      ORDER BY nivel_alerta, p.categoria, p.nombre
+    `);
+    const alertas = result.rows;
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="reporte_alertas.pdf"');
+    doc.pipe(res);
+    // Título
+    doc.fontSize(24).fillColor('#b91c1c').text('Reporte de Alertas - OPTISTOCK', { align: 'center', underline: true });
+    doc.moveDown(0.5);
+    doc.fontSize(12).fillColor('#4B5563').text(`Fecha de generación: ${new Date().toLocaleDateString()}`, { align: 'center' });
+    doc.moveDown(1);
+    // Línea divisoria
+    doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).stroke('#b91c1c');
+    doc.moveDown(1.5);
+    // Tabla de alertas
+    if (alertas.length === 0) {
+      doc.fontSize(14).fillColor('#b91c1c').text('No hay alertas activas para mostrar.', { align: 'center' });
+    } else {
+      // Encabezados
+      const tableTop = doc.y;
+      const colWidths = [150, 100, 60, 60, 80];
+      const headers = ['Producto', 'Categoría', 'Stock', 'Mínimo', 'Nivel'];
+      let x = 60;
+      headers.forEach((header, i) => {
+        doc.font('Helvetica-Bold').fontSize(11).fillColor('#fff').rect(x, tableTop, colWidths[i], 24).fill('#b91c1c');
+        doc.fillColor('#fff').text(header, x + 8, tableTop + 6, { width: colWidths[i] - 16, align: 'center' });
+        x += colWidths[i];
+      });
+      let y = tableTop + 24;
+      alertas.forEach((a, idx) => {
+        x = 60;
+        // Alternar color de fondo
+        if (idx % 2 === 0) {
+          doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), 22).fill('#FEE2E2');
+        }
+        doc.fillColor('#111827').font('Helvetica').fontSize(10);
+        doc.text(a.nombre, x + 8, y + 6, { width: colWidths[0] - 16 });
+        x += colWidths[0];
+        doc.text(a.categoria, x + 8, y + 6, { width: colWidths[1] - 16 });
+        x += colWidths[1];
+        doc.text(a.stock_actual.toString(), x + 8, y + 6, { width: colWidths[2] - 16, align: 'center' });
+        x += colWidths[2];
+        doc.text(a.stock_minimo.toString(), x + 8, y + 6, { width: colWidths[3] - 16, align: 'center' });
+        x += colWidths[3];
+        doc.text(a.nivel_alerta, x + 8, y + 6, { width: colWidths[4] - 16, align: 'center' });
+        y += 22;
+      });
+    }
+    // Pie de página
+    doc.fontSize(10).fillColor('#6b7280').text('Reporte generado automáticamente por OPTISTOCK', 0, doc.page.height - 60, { align: 'center' });
+    doc.end();
+  } catch (error) {
+    console.error('Error al generar reporte de alertas PDF:', error.message);
+    res.status(500).json({ error: 'Error al generar el reporte de alertas' });
+  }
+};
+
 module.exports = {
   obtenerAlertas,
   generarRecomendaciones,
   enviarNotificacionEmail,
-  obtenerDashboard
+  obtenerDashboard,
+  generarReporteAlertasPDF
 };

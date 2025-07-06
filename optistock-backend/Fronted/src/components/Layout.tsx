@@ -25,6 +25,7 @@ const navigation = [
   { name: 'Cálculo EOQ', href: '/eoq', icon: CalculatorIcon },
   { name: 'Alertas', href: '/alerts', icon: ExclamationTriangleIcon },
   { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon },
+  { name: 'Configuración', href: '/settings', icon: Cog6ToothIcon },
 ]
 
 export default function Layout({ children }: LayoutProps) {
@@ -32,7 +33,7 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar móvil */}
       <div className={clsx(
         'relative z-50 lg:hidden',
@@ -51,7 +52,7 @@ export default function Layout({ children }: LayoutProps) {
                 <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
             </div>
-            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
+            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-800 px-6 pb-2">
               <div className="flex h-16 shrink-0 items-center">
                 <div className="flex items-center gap-3">
                   <div className="bg-primary-600 p-2 rounded-lg">
@@ -100,13 +101,13 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Sidebar escritorio */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-white px-6">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6">
           <div className="flex h-16 shrink-0 items-center">
             <div className="flex items-center gap-3">
               <div className="bg-primary-600 p-2 rounded-lg">
                 <CubeIcon className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">OPTISTOCK</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">OPTISTOCK</h1>
             </div>
           </div>
           <nav className="flex flex-1 flex-col">
@@ -155,10 +156,10 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Header */}
-      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 lg:pl-80">
+      <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8 lg:pl-80">
         <button
           type="button"
-          className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+          className="-m-2.5 p-2.5 text-gray-700 dark:text-gray-300 lg:hidden"
           onClick={() => setSidebarOpen(true)}
         >
           <span className="sr-only">Abrir sidebar</span>
@@ -166,12 +167,12 @@ export default function Layout({ children }: LayoutProps) {
         </button>
 
         {/* Separador */}
-        <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
+        <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 lg:hidden" aria-hidden="true" />
 
         <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
           <div className="relative flex flex-1 items-center">
             {/* Breadcrumb o título de página */}
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {navigation.find(item => item.href === location.pathname)?.name || 'OPTISTOCK'}
             </h2>
           </div>
@@ -179,7 +180,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Notificaciones */}
             <button
               type="button"
-              className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
+              className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
             >
               <span className="sr-only">Ver notificaciones</span>
               <BellIcon className="h-6 w-6" aria-hidden="true" />
@@ -192,14 +193,14 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Contenido principal */}
-      <main className="py-8 lg:pl-72">
+      <main className="py-8 lg:pl-72 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="px-4 sm:px-6 lg:px-8">
           {children}
         </div>
       </main>
-      <footer className="w-full flex items-center justify-center gap-2 py-4 bg-gray-100 border-t mt-8">
+      <footer className="w-full flex items-center justify-center gap-2 py-4 bg-gray-100 dark:bg-gray-800 border-t dark:border-gray-700 mt-8 lg:ml-72">
         <img src={logoJ4} alt="J4 Process" style={{ height: 32 }} />
-        <span className="text-gray-700 font-medium">Diseñado por J4 PROCESS</span>
+        <span className="text-gray-700 dark:text-gray-300 font-medium">Diseñado por J4 PROCESS</span>
       </footer>
     </div>
   )
