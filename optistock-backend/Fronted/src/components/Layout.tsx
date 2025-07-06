@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   HomeIcon,
-  CubeIcon,
   CalculatorIcon,
   ExclamationTriangleIcon,
   DocumentChartBarIcon,
@@ -15,13 +14,55 @@ import { clsx } from 'clsx'
 import ConnectionStatus from './ConnectionStatus'
 import logoJ4 from '../assets/j4process.png'
 
+// Icono personalizado J4 PROCESS
+const J4ProcessIcon = ({ className }: { className?: string }) => (
+  <svg 
+    className={className} 
+    viewBox="0 0 100 100" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Círculo exterior */}
+    <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="4" fill="none" />
+    
+    {/* Puntos conectores */}
+    <circle cx="50" cy="15" r="5" fill="currentColor" />
+    <circle cx="85" cy="50" r="5" fill="currentColor" />
+    <circle cx="50" cy="85" r="5" fill="currentColor" />
+    <circle cx="15" cy="50" r="5" fill="currentColor" />
+    
+    {/* Engranaje central */}
+    <g transform="translate(50, 50)">
+      {/* Dientes del engranaje */}
+      <path d="M-15 -5 L-15 5 L-20 5 L-20 -5 Z" fill="currentColor" />
+      <path d="M15 -5 L15 5 L20 5 L20 -5 Z" fill="currentColor" />
+      <path d="M-5 -15 L5 -15 L5 -20 L-5 -20 Z" fill="currentColor" />
+      <path d="M-5 15 L5 15 L5 20 L-5 20 Z" fill="currentColor" />
+      
+      {/* Círculo principal del engranaje */}
+      <circle cx="0" cy="0" r="12" stroke="currentColor" strokeWidth="2" fill="none" />
+      
+      {/* Reloj/tiempo en el centro */}
+      <circle cx="0" cy="0" r="8" fill="currentColor" fillOpacity="0.1" />
+      <path d="M0 -6 L0 0 L4 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <circle cx="0" cy="0" r="1" fill="currentColor" />
+    </g>
+    
+    {/* Líneas de conexión */}
+    <line x1="50" y1="20" x2="50" y2="35" stroke="currentColor" strokeWidth="2" />
+    <line x1="80" y1="50" x2="65" y2="50" stroke="currentColor" strokeWidth="2" />
+    <line x1="50" y1="80" x2="50" y2="65" stroke="currentColor" strokeWidth="2" />
+    <line x1="20" y1="50" x2="35" y2="50" stroke="currentColor" strokeWidth="2" />
+  </svg>
+)
+
 interface LayoutProps {
   children: React.ReactNode
 }
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Productos', href: '/products', icon: CubeIcon },
+  { name: 'Productos', href: '/products', icon: J4ProcessIcon },
   { name: 'Cálculo EOQ', href: '/eoq', icon: CalculatorIcon },
   { name: 'Alertas', href: '/alerts', icon: ExclamationTriangleIcon },
   { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon },
@@ -55,7 +96,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="flex h-16 shrink-0 items-center">
                 <div className="flex items-center gap-3">
                   <div className="bg-primary-600 p-2 rounded-lg">
-                    <CubeIcon className="h-8 w-8 text-white" />
+                    <J4ProcessIcon className="h-8 w-8 text-white" />
                   </div>
                   <h1 className="text-xl font-bold text-gray-900">OPTISTOCK</h1>
                 </div>
@@ -104,7 +145,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex h-16 shrink-0 items-center">
             <div className="flex items-center gap-3">
               <div className="bg-primary-600 p-2 rounded-lg">
-                <CubeIcon className="h-8 w-8 text-white" />
+                <J4ProcessIcon className="h-8 w-8 text-white" />
               </div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">OPTISTOCK</h1>
             </div>
