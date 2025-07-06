@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { 
-  CubeIcon, 
+  CubeIcon,
   ExclamationTriangleIcon, 
   ArrowTrendingUpIcon, 
   CurrencyDollarIcon,
@@ -9,6 +9,48 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import type { DashboardData } from '../types'
 import { alertsAPI } from '../services/api'
+
+// Icono personalizado J4 PROCESS
+const J4ProcessIcon = ({ className }: { className?: string }) => (
+  <svg 
+    className={className} 
+    viewBox="0 0 100 100" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Círculo exterior */}
+    <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="4" fill="none" />
+    
+    {/* Puntos conectores */}
+    <circle cx="50" cy="15" r="5" fill="currentColor" />
+    <circle cx="85" cy="50" r="5" fill="currentColor" />
+    <circle cx="50" cy="85" r="5" fill="currentColor" />
+    <circle cx="15" cy="50" r="5" fill="currentColor" />
+    
+    {/* Engranaje central */}
+    <g transform="translate(50, 50)">
+      {/* Dientes del engranaje */}
+      <path d="M-15 -5 L-15 5 L-20 5 L-20 -5 Z" fill="currentColor" />
+      <path d="M15 -5 L15 5 L20 5 L20 -5 Z" fill="currentColor" />
+      <path d="M-5 -15 L5 -15 L5 -20 L-5 -20 Z" fill="currentColor" />
+      <path d="M-5 15 L5 15 L5 20 L-5 20 Z" fill="currentColor" />
+      
+      {/* Círculo principal del engranaje */}
+      <circle cx="0" cy="0" r="12" stroke="currentColor" strokeWidth="2" fill="none" />
+      
+      {/* Reloj/tiempo en el centro */}
+      <circle cx="0" cy="0" r="8" fill="currentColor" fillOpacity="0.1" />
+      <path d="M0 -6 L0 0 L4 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <circle cx="0" cy="0" r="1" fill="currentColor" />
+    </g>
+    
+    {/* Líneas de conexión */}
+    <line x1="50" y1="20" x2="50" y2="35" stroke="currentColor" strokeWidth="2" />
+    <line x1="80" y1="50" x2="65" y2="50" stroke="currentColor" strokeWidth="2" />
+    <line x1="50" y1="80" x2="50" y2="65" stroke="currentColor" strokeWidth="2" />
+    <line x1="20" y1="50" x2="35" y2="50" stroke="currentColor" strokeWidth="2" />
+  </svg>
+)
 
 // Datos de ejemplo para desarrollo (fallback)
 const mockDashboardData: DashboardData = {
