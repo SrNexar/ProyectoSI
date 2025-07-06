@@ -6,7 +6,8 @@ import {
   TrashIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  XCircleIcon
+  XCircleIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import type { Product } from '../types';
 import api from '../services/api';
@@ -17,6 +18,8 @@ const Products: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [formData, setFormData] = useState({
     nombre: '',
     categoria: '',
@@ -33,10 +36,21 @@ const Products: React.FC = () => {
     fetchProducts();
   }, []);
 
+  // Función para extraer categorías únicas de los productos
+  const extractUniqueCategories = (products: Product[]) => {
+    const uniqueCategories = Array.from(new Set(
+      products
+        .map(product => product.categoria)
+        .filter((categoria): categoria is string => categoria !== undefined && categoria.trim() !== '')
+    ));
+    setCategories(uniqueCategories);
+  };
+
   const fetchProducts = async () => {
     try {
       const products = await api.products.getAll();
       setProducts(products);
+      extractUniqueCategories(products);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
@@ -97,6 +111,7 @@ const Products: React.FC = () => {
       costo_mantenimiento: ''
     });
     setSelectedProduct(null);
+    setShowCategoryDropdown(false);
   };
 
   const openModal = (product?: Product) => {
@@ -116,6 +131,7 @@ const Products: React.FC = () => {
     } else {
       resetForm();
     }
+    setShowCategoryDropdown(false);
     setShowModal(true);
   };
 
@@ -285,12 +301,57 @@ const Products: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Categoría
                   </label>
-                  <input
-                    type="text"
-                    value={formData.categoria}
-                    onChange={(e) => setFormData({...formData, categoria: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.categoria}
+                      onChange={(e) => setFormData({...formData, categoria: e.target.value})}
+                      onFocus={() => setShowCategoryDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
+                      onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                      placeholder="Escribe una categoría o selecciona una existente"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center"
+                    >
+                      <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                    </button>
+                    {showCategoryDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        {categories.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-gray-500 italic">
+                            No hay categorías disponibles. Escribe una nueva categoría.
+                          </div>
+                        ) : (
+                          <>
+                            {categories
+                              .filter(cat => cat.toLowerCase().includes(formData.categoria.toLowerCase()))
+                              .map((categoria, index) => (
+                                <div
+                                  key={index}
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    setFormData({...formData, categoria: categoria});
+                                    setShowCategoryDropdown(false);
+                                  }}
+                                >
+                                  {categoria}
+                                </div>
+                              ))}
+                            {categories.filter(cat => cat.toLowerCase().includes(formData.categoria.toLowerCase())).length === 0 && formData.categoria.trim() !== '' && (
+                              <div className="px-3 py-2 text-sm text-gray-500 italic">
+                                "{formData.categoria}" (nueva categoría)
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
