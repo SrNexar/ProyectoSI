@@ -25,7 +25,6 @@ const navigation = [
   { name: 'Cálculo EOQ', href: '/eoq', icon: CalculatorIcon },
   { name: 'Alertas', href: '/alerts', icon: ExclamationTriangleIcon },
   { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon },
-  { name: 'Configuración', href: '/settings', icon: Cog6ToothIcon },
 ]
 
 export default function Layout({ children }: LayoutProps) {
@@ -33,7 +32,7 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar móvil */}
       <div className={clsx(
         'relative z-50 lg:hidden',
@@ -52,7 +51,7 @@ export default function Layout({ children }: LayoutProps) {
                 <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
               </button>
             </div>
-            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-800 px-6 pb-2">
+            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-2">
               <div className="flex h-16 shrink-0 items-center">
                 <div className="flex items-center gap-3">
                   <div className="bg-primary-600 p-2 rounded-lg">

@@ -6,7 +6,7 @@ import {
   CurrencyDollarIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 import type { DashboardData } from '../types'
 import { alertsAPI } from '../services/api'
 
@@ -201,23 +201,41 @@ export default function Dashboard() {
             <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
               Alertas por Categoría
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={400}>
               <PieChart>
                 <Pie
                   data={dashboardData.categorias_con_alertas}
                   cx="50%"
-                  cy="50%"
+                  cy="45%"
                   labelLine={false}
-                  label={({ categoria, productos_con_alertas }) => `${categoria}: ${productos_con_alertas}`}
-                  outerRadius={80}
+                  label={({ productos_con_alertas, percent }) => {
+                    const percentage = percent ? (percent * 100).toFixed(0) : '0';
+                    // Solo mostrar etiquetas si el porcentaje es mayor al 8% para evitar solapamientos
+                    if (percent && percent > 0.08) {
+                      return `${productos_con_alertas} (${percentage}%)`;
+                    }
+                    return '';
+                  }}
+                  outerRadius={85}
                   fill="#8884d8"
                   dataKey="productos_con_alertas"
+                  fontSize={10}
+                  fontWeight="500"
+                  nameKey="categoria"
                 >
                   {dashboardData.categorias_con_alertas.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  formatter={(value) => [`${value} productos`, 'Cantidad']}
+                  labelFormatter={(label) => `Categoría: ${label}`}
+                />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={60}
+                  wrapperStyle={{ fontSize: '12px' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
