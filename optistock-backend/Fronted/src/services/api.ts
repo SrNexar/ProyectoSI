@@ -133,6 +133,14 @@ export const eoqAPI = {
       responseType: 'blob'
     })
     return response.data
+  },
+
+  // Generar reporte EOQ masivo en PDF
+  generateMassiveReport: async (): Promise<Blob> => {
+    const response = await api.get('/eoq/reporte-masivo', {
+      responseType: 'blob'
+    })
+    return response.data
   }
 }
 
@@ -165,6 +173,14 @@ export const alertsAPI = {
   // Crear alerta personalizada
   createCustomAlert: async (alert: Alert): Promise<any> => {
     const response = await api.post('/alertas/personalizada', alert)
+    return response.data
+  },
+
+  // Descargar reporte de alertas en PDF
+  downloadAlertsPDF: async (): Promise<Blob> => {
+    const response = await api.get('/alertas/reporte/pdf', {
+      responseType: 'blob'
+    })
     return response.data
   }
 }

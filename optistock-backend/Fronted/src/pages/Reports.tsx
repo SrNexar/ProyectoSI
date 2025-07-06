@@ -61,12 +61,20 @@ const Reports: React.FC = () => {
           }
           break;
         case 'eoq':
-          const eoqData = await api.reports.getMostCriticalProducts();
-          blob = new Blob([JSON.stringify(eoqData, null, 2)], { type: format === 'pdf' ? 'application/pdf' : 'application/json' });
+          if (format === 'pdf') {
+            blob = await api.eoq.generateMassiveReport();
+          } else {
+            const eoqData = await api.reports.getMostCriticalProducts();
+            blob = new Blob([JSON.stringify(eoqData, null, 2)], { type: 'application/json' });
+          }
           break;
         case 'alerts':
-          const alertsData = await api.alerts.getAll();
-          blob = new Blob([JSON.stringify(alertsData, null, 2)], { type: format === 'pdf' ? 'application/pdf' : 'application/json' });
+          if (format === 'pdf') {
+            blob = await api.alerts.downloadAlertsPDF();
+          } else {
+            const alertsData = await api.alerts.getAll();
+            blob = new Blob([JSON.stringify(alertsData, null, 2)], { type: 'application/json' });
+          }
           break;
         default:
           throw new Error('Tipo de reporte no válido');
