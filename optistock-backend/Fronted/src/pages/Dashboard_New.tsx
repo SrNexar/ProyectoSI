@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { 
-  CubeIcon,
   ExclamationTriangleIcon, 
   ArrowTrendingUpIcon, 
   CurrencyDollarIcon,
@@ -197,7 +196,7 @@ export default function Dashboard() {
         <StatCard
           title="Total Productos"
           value={dashboardData.estadisticas_generales.total_productos}
-          icon={CubeIcon}
+          icon={J4ProcessIcon}
           color="blue"
         />
         <StatCard
