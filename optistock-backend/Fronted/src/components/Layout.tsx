@@ -8,10 +8,12 @@ import {
   Bars3Icon,
   XMarkIcon,
   BellIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
 import ConnectionStatus from './ConnectionStatus'
+import Chatbot from './Chatbot'
 import logoJ4 from '../assets/j4process.png'
 
 // Icono personalizado J4 PROCESS
@@ -66,6 +68,7 @@ const navigation = [
   { name: 'Cálculo EOQ', href: '/eoq', icon: CalculatorIcon },
   { name: 'Alertas', href: '/alerts', icon: ExclamationTriangleIcon },
   { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon },
+  { name: 'Asistente IA', href: '/chatbot', icon: ChatBubbleLeftRightIcon },
 ]
 
 export default function Layout({ children }: LayoutProps) {
@@ -242,6 +245,9 @@ export default function Layout({ children }: LayoutProps) {
         <img src={logoJ4} alt="J4 Process" style={{ height: 32 }} />
         <span className="text-gray-700 dark:text-gray-300 font-medium">Diseñado por J4 PROCESS</span>
       </footer>
+      
+      {/* Chatbot flotante */}
+      <Chatbot />
     </div>
   )
 }

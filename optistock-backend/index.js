@@ -5,6 +5,7 @@ require('dotenv').config();
 const productRoutes = require('./routes/productRoutes');
 const eoqRoutes = require('./routes/eoqRoutes');
 const alertRoutes = require('./routes/alertRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json()); // <<--- MUY IMPORTANTE para que acepte JSON
 app.use('/api/products', productRoutes);
 app.use('/api/eoq', eoqRoutes);
 app.use('/api/alertas', alertRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // Ruta principal
 app.get('/', (req, res) => {
@@ -25,7 +27,8 @@ app.get('/', (req, res) => {
     endpoints: {
       productos: '/api/products',
       eoq: '/api/eoq',
-      alertas: '/api/alertas'
+      alertas: '/api/alertas',
+      chatbot: '/api/chatbot'
     }
   });
 });
@@ -51,6 +54,16 @@ app.get('/api', (req, res) => {
         métodos: ['GET', 'POST', 'PUT', 'DELETE'],
         descripción: 'Sistema de alertas y notificaciones',
         dashboard: '/api/alertas/dashboard'
+      },
+      chatbot: {
+        url: '/api/chatbot',
+        métodos: ['GET', 'POST'],
+        descripción: 'Asistente inteligente OptiBot para consultas de inventario',
+        endpoints: {
+          chat: '/api/chatbot/chat',
+          sugerencias: '/api/chatbot/sugerencias',
+          historial: '/api/chatbot/historial'
+        }
       }
     },
     documentación: 'Para más información, visita la documentación del proyecto'
