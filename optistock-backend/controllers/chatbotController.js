@@ -61,13 +61,15 @@ async function obtenerContextoBD() {
       SELECT COUNT(*) as total_productos,
              AVG(stock_actual) as promedio_stock,
              MIN(stock_actual) as stock_minimo,
-             MAX(stock_actual) as stock_maximo
+             MAX(stock_actual) as stock_maximo,
+             SUM(costo_unitario * stock_actual) as valor_total_inventario
       FROM productos
     `);
     
     // Productos con stock bajo o crítico
     const stockBajoQuery = await db.query(`
       SELECT nombre, categoria, stock_actual, stock_minimo, punto_reorden,
+             costo_unitario, (costo_unitario * stock_actual) as valor_total,
              CASE 
                WHEN stock_actual <= stock_minimo THEN 'CRITICO'
                WHEN stock_actual <= punto_reorden THEN 'BAJO'
@@ -77,6 +79,24 @@ async function obtenerContextoBD() {
       WHERE stock_actual <= punto_reorden
       ORDER BY stock_actual ASC
       LIMIT 10
+    `);
+
+    // Productos más valiosos (por valor total)
+    const productosValiososQuery = await db.query(`
+      SELECT nombre, categoria, costo_unitario, stock_actual,
+             (costo_unitario * stock_actual) as valor_total
+      FROM productos
+      ORDER BY valor_total DESC
+      LIMIT 5
+    `);
+
+    // Productos más caros (por precio unitario)
+    const productosCarosQuery = await db.query(`
+      SELECT nombre, categoria, costo_unitario, stock_actual,
+             (costo_unitario * stock_actual) as valor_total
+      FROM productos
+      ORDER BY costo_unitario DESC
+      LIMIT 5
     `);
     
     // Alertas activas del historial
@@ -104,7 +124,9 @@ async function obtenerContextoBD() {
       productos: productosQuery.rows[0],
       stockBajo: stockBajoQuery.rows,
       alertas: alertasQuery.rows,
-      categorias: categoriasQuery.rows
+      categorias: categoriasQuery.rows,
+      productosValiosos: productosValiososQuery.rows,
+      productosCaros: productosCarosQuery.rows
     };
   } catch (error) {
     console.error('Error obteniendo contexto de BD:', error);
@@ -172,15 +194,26 @@ const chatbotController = {
         - Promedio de stock: ${Math.round(contexto.productos.promedio_stock)}
         - Stock mínimo registrado: ${contexto.productos.stock_minimo}
         - Stock máximo registrado: ${contexto.productos.stock_maximo}
+        - Valor total del inventario: $${parseFloat(contexto.productos.valor_total_inventario).toFixed(2)}
         - Alertas activas: ${contexto.alertas.length > 0 ? contexto.alertas.map(a => `${a.cantidad} ${a.tipo_alerta}`).join(', ') : 'Ninguna'}
         
         PRODUCTOS CON STOCK BAJO O CRÍTICO:
         ${contexto.stockBajo.length > 0 ? 
           contexto.stockBajo.map(p => 
-            `- ${p.nombre} (${p.categoria}): Stock ${p.stock_actual}/${p.stock_minimo} - Estado: ${p.estado_stock}`
+            `- ${p.nombre} (${p.categoria}): Stock ${p.stock_actual}/${p.stock_minimo} - Estado: ${p.estado_stock} - Precio: $${p.costo_unitario} - Valor: $${parseFloat(p.valor_total).toFixed(2)}`
           ).join('\n') : 
           'Todos los productos tienen stock normal'
         }
+
+        PRODUCTOS MÁS VALIOSOS (por valor total en inventario):
+        ${contexto.productosValiosos.map(p => 
+          `- ${p.nombre} (${p.categoria}): $${p.costo_unitario} x ${p.stock_actual} unidades = $${parseFloat(p.valor_total).toFixed(2)}`
+        ).join('\n')}
+
+        PRODUCTOS MÁS CAROS (por precio unitario):
+        ${contexto.productosCaros.map(p => 
+          `- ${p.nombre} (${p.categoria}): $${p.costo_unitario} por unidad - Stock: ${p.stock_actual} - Valor total: $${parseFloat(p.valor_total).toFixed(2)}`
+        ).join('\n')}
         
         CATEGORÍAS PRINCIPALES:
         ${contexto.categorias.map(c => 
