@@ -96,6 +96,120 @@ export interface RecommendationsResponse {
   recomendaciones: ReorderRecommendation[]
 }
 
+// Nuevos tipos para EOQ Avanzado
+export interface AlertaStockAlto {
+  id: number
+  nombre: string
+  categoria: string
+  stock_actual: number
+  eoq_optimo: number
+  exceso_unidades: number
+  valor_exceso: number
+  porcentaje_exceso: number
+  nivel_severidad: 'CRÍTICO' | 'ALTO' | 'MEDIO' | 'BAJO'
+  valor_inventario_actual: number
+  valor_inventario_optimo: number
+  ahorro_potencial: number
+}
+
+export interface AlertasStockAltoResponse {
+  resumen: {
+    total_productos: number
+    valor_total_exceso: number
+    ahorro_total_potencial: number
+    productos_por_severidad: {
+      CRÍTICO: number
+      ALTO: number
+      MEDIO: number
+      BAJO: number
+    }
+  }
+  alertas_por_severidad: {
+    CRÍTICO: AlertaStockAlto[]
+    ALTO: AlertaStockAlto[]
+    MEDIO: AlertaStockAlto[]
+    BAJO: AlertaStockAlto[]
+  }
+  alertas: AlertaStockAlto[]
+}
+
+export interface RecomendacionOptimizacion {
+  id: number
+  nombre: string
+  categoria: string
+  stock_actual: number
+  stock_minimo: number
+  eoq_optimo: number
+  diferencia_eoq: number
+  prioridad: 'ALTA' | 'MEDIA' | 'BAJA'
+  accion_recomendada: string
+  impacto_financiero: number
+  demanda_diaria: number
+  dias_entre_pedidos: number
+  costo_total_optimo: number
+  valor_inventario_actual: number
+}
+
+export interface RecomendacionesOptimizacionResponse {
+  resumen: {
+    total_productos: number
+    productos_por_prioridad: {
+      ALTA: number
+      MEDIA: number
+      BAJA: number
+    }
+    impacto_total_financiero: number
+    valor_total_inventario: number
+  }
+  recomendaciones_por_prioridad: {
+    ALTA: RecomendacionOptimizacion[]
+    MEDIA: RecomendacionOptimizacion[]
+    BAJA: RecomendacionOptimizacion[]
+  }
+  recomendaciones: RecomendacionOptimizacion[]
+}
+
+export interface TiempoEntregaResponse {
+  producto: string
+  tiempo_entrega_dias: number
+  demanda_diaria: number
+  demanda_durante_entrega: number
+  stock_seguridad: number
+  punto_reorden: number
+  stock_actual: number
+  eoq_optimo: number
+  dias_entre_pedidos: number
+  riesgo_quiebre: {
+    nivel: 'CRÍTICO' | 'ALTO' | 'MEDIO' | 'BAJO'
+    descripcion: string
+    dias_restantes: number
+  }
+  recomendacion: string
+  fecha_calculo: string
+}
+
+export interface AnalisisInventarioCompleto {
+  metricas_generales: {
+    total_productos: number
+    valor_total_inventario: number
+    stock_promedio: number
+    productos_criticos: number
+    productos_exceso: number
+  }
+  analisis_abc: {
+    productos_clase_a: number
+    productos_clase_b: number
+    productos_clase_c: number
+    detalle: any[]
+  }
+  rotacion_inventario: {
+    mejor_rotacion: any[]
+    peor_rotacion: any[]
+  }
+  recomendaciones_estrategicas: any[]
+  fecha_analisis: string
+}
+
 // Tipos para Dashboard
 export interface DashboardStats {
   total_productos: number

@@ -185,6 +185,35 @@ export const alertsAPI = {
   }
 }
 
+// EOQ Avanzado API
+export const eoqAvanzadoAPI = {
+  // Generar alertas por stock alto
+  generarAlertasStockAlto: async (): Promise<any> => {
+    const response = await api.get('/eoq/alertas-stock-alto')
+    return response.data
+  },
+
+  // Obtener recomendaciones de optimización
+  obtenerRecomendaciones: async (): Promise<any> => {
+    const response = await api.get('/eoq/recomendaciones')
+    return response.data
+  },
+
+  // Calcular tiempo de entrega para un producto
+  calcularTiempoEntrega: async (productoId: number, tiempoEntregaDias?: number): Promise<any> => {
+    const response = await api.post(`/eoq/tiempo-entrega/${productoId}`, {
+      tiempo_entrega_dias: tiempoEntregaDias
+    })
+    return response.data
+  },
+
+  // Análisis completo del inventario
+  analisisInventarioCompleto: async (): Promise<any> => {
+    const response = await api.get('/eoq/analisis-completo')
+    return response.data
+  }
+}
+
 // Reportes API
 export const reportsAPI = {
   // Resumen de inventario (PDF o JSON)
@@ -225,6 +254,7 @@ export const formatApiError = (error: any): string => {
 export default {
   products: productsAPI,
   eoq: eoqAPI,
+  eoqAvanzado: eoqAvanzadoAPI,
   alerts: alertsAPI,
   reports: reportsAPI,
   formatApiError

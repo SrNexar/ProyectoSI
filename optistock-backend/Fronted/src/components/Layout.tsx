@@ -9,7 +9,8 @@ import {
   XMarkIcon,
   BellIcon,
   Cog6ToothIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
 import ConnectionStatus from './ConnectionStatus'
@@ -67,6 +68,7 @@ const navigation = [
   { name: 'Productos', href: '/products', icon: J4ProcessIcon },
   { name: 'Cálculo EOQ', href: '/eoq', icon: CalculatorIcon },
   { name: 'Alertas', href: '/alerts', icon: ExclamationTriangleIcon },
+  { name: 'Análisis Avanzado', href: '/alertas-avanzadas', icon: ChartBarIcon },
   { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon },
   { name: 'Asistente IA', href: '/chatbot', icon: ChatBubbleLeftRightIcon },
 ]
