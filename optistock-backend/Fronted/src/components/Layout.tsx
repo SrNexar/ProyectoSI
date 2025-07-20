@@ -10,7 +10,8 @@ import {
   BellIcon,
   Cog6ToothIcon,
   ChatBubbleLeftRightIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
 import ConnectionStatus from './ConnectionStatus'
@@ -70,6 +71,7 @@ const navigation = [
   { name: 'Alertas', href: '/alerts', icon: ExclamationTriangleIcon },
   { name: 'Análisis Avanzado', href: '/alertas-avanzadas', icon: ChartBarIcon },
   { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon },
+  { name: 'Logs de Auditoría', href: '/audit', icon: ClipboardDocumentListIcon },
   { name: 'Asistente IA', href: '/chatbot', icon: ChatBubbleLeftRightIcon },
 ]
 

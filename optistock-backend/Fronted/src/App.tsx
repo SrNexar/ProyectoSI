@@ -7,6 +7,7 @@ import Alerts from './pages/Alerts.tsx'
 import AlertasAvanzadas from './pages/AlertasAvanzadas.tsx'
 import Reports from './pages/Reports.tsx'
 import ChatbotPage from './pages/ChatbotPage.tsx'
+import AuditLogs from './pages/AuditLogs_Simple.tsx'
 import './styles.css'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/alertas-avanzadas" element={<AlertasAvanzadas />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/audit" element={<AuditLogs />} />
           <Route path="/chatbot" element={<ChatbotPage />} />
         </Routes>
       </Layout>

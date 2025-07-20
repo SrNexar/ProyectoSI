@@ -1,4 +1,5 @@
 const pool = require('../models/db');
+const AuditService = require('../services/auditService');
 
 // Obtener todos los productos
 const obtenerProductos = async (req, res) => {
@@ -51,6 +52,21 @@ const crearProducto = async (req, res) => {
       [nombre, categoria, costo_unitario, stock_actual, stock_minimo, stock_maximo, demanda_anual, costo_pedido, costo_mantenimiento]
     );
 
+    // Registrar log de auditoría
+    await AuditService.registrarLog(
+      'productos',
+      'INSERT',
+      resultado.rows[0].id,
+      null,
+      resultado.rows[0],
+      {
+        usuario: req.headers['x-usuario'] || 'sistema',
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'],
+        detalles: `Producto creado: ${nombre}`
+      }
+    );
+
     res.status(201).json(resultado.rows[0]);
   } catch (error) {
     console.error('Error al crear producto:', error);
@@ -74,6 +90,13 @@ const actualizarProducto = async (req, res) => {
       costo_mantenimiento
     } = req.body;
 
+    // Obtener datos anteriores para el log
+    const datosAnteriores = await pool.query('SELECT * FROM productos WHERE id = $1', [id]);
+    
+    if (datosAnteriores.rows.length === 0) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
     const resultado = await pool.query(
       `UPDATE productos 
        SET nombre = $1, categoria = $2, costo_unitario = $3, stock_actual = $4, stock_minimo = $5, 
@@ -87,6 +110,21 @@ const actualizarProducto = async (req, res) => {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
 
+    // Registrar log de auditoría
+    await AuditService.registrarLog(
+      'productos',
+      'UPDATE',
+      parseInt(id),
+      datosAnteriores.rows[0],
+      resultado.rows[0],
+      {
+        usuario: req.headers['x-usuario'] || 'sistema',
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'],
+        detalles: `Producto actualizado: ${nombre}`
+      }
+    );
+
     res.json(resultado.rows[0]);
   } catch (error) {
     console.error('Error al actualizar producto:', error);
@@ -98,11 +136,34 @@ const actualizarProducto = async (req, res) => {
 const eliminarProducto = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Obtener datos antes de eliminar para el log
+    const datosAnteriores = await pool.query('SELECT * FROM productos WHERE id = $1', [id]);
+    
+    if (datosAnteriores.rows.length === 0) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
     const resultado = await pool.query('DELETE FROM productos WHERE id = $1 RETURNING *', [id]);
     
     if (resultado.rows.length === 0) {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
+
+    // Registrar log de auditoría
+    await AuditService.registrarLog(
+      'productos',
+      'DELETE',
+      parseInt(id),
+      datosAnteriores.rows[0],
+      null,
+      {
+        usuario: req.headers['x-usuario'] || 'sistema',
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.headers['user-agent'],
+        detalles: `Producto eliminado: ${datosAnteriores.rows[0].nombre}`
+      }
+    );
     
     res.json({ mensaje: 'Producto eliminado exitosamente' });
   } catch (error) {
@@ -117,6 +178,13 @@ const actualizarStock = async (req, res) => {
     const { id } = req.params;
     const { stock_actual } = req.body;
 
+    // Obtener datos anteriores para el log
+    const datosAnteriores = await pool.query('SELECT * FROM productos WHERE id = $1', [id]);
+    
+    if (datosAnteriores.rows.length === 0) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
     const resultado = await pool.query(
       'UPDATE productos SET stock_actual = $1, fecha_modificacion = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
       [stock_actual, id]
@@ -124,6 +192,23 @@ const actualizarStock = async (req, res) => {
 
     if (resultado.rows.length === 0) {
       return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+
+    // Registrar log de auditoría solo si el stock cambió
+    if (datosAnteriores.rows[0].stock_actual !== stock_actual) {
+      await AuditService.registrarLog(
+        'productos',
+        'UPDATE',
+        parseInt(id),
+        { stock_actual: datosAnteriores.rows[0].stock_actual },
+        { stock_actual: stock_actual },
+        {
+          usuario: req.headers['x-usuario'] || 'sistema',
+          ip: req.ip || req.connection.remoteAddress,
+          userAgent: req.headers['user-agent'],
+          detalles: `Stock actualizado de ${datosAnteriores.rows[0].stock_actual} a ${stock_actual} para producto: ${datosAnteriores.rows[0].nombre}`
+        }
+      );
     }
 
     res.json(resultado.rows[0]);

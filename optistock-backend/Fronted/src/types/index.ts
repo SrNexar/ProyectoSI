@@ -33,6 +33,40 @@ export interface ProductFormData {
   costo_mantenimiento: number
 }
 
+// Tipos para Auditoría
+export interface AuditLog {
+  id: number
+  tabla_afectada: string
+  accion: 'INSERT' | 'UPDATE' | 'DELETE'
+  registro_id?: number
+  datos_anteriores?: Record<string, any>
+  datos_nuevos?: Record<string, any>
+  usuario: string
+  ip_address?: string
+  user_agent?: string
+  fecha_accion: string
+  detalles?: string
+  descripcion?: string
+}
+
+export interface AuditFilters {
+  tabla?: string
+  accion?: 'INSERT' | 'UPDATE' | 'DELETE'
+  registroId?: number
+  usuario?: string
+  fechaInicio?: string
+  fechaFin?: string
+  limite?: number
+  offset?: number
+}
+
+export interface AuditStats {
+  tabla_afectada: string
+  accion: 'INSERT' | 'UPDATE' | 'DELETE'
+  cantidad: number
+  ultima_accion: string
+}
+
 // Tipos para EOQ
 export interface EOQCalculation {
   producto: string

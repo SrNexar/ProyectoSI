@@ -10,7 +10,10 @@ import type {
   DashboardData,
   NotificationRequest,
   NotificationResponse,
-  Alert
+  Alert,
+  AuditLog,
+  AuditFilters,
+  AuditStats
 } from '../types'
 
 // Configuración base de la API
@@ -236,6 +239,57 @@ export const reportsAPI = {
   }
 }
 
+// ===== API de Auditoría =====
+export const auditAPI = {
+  // Obtener logs de auditoría con filtros
+  getLogs: async (filtros?: AuditFilters): Promise<{ data: AuditLog[], total: number }> => {
+    const params = new URLSearchParams()
+    if (filtros?.tabla) params.append('tabla', filtros.tabla)
+    if (filtros?.accion) params.append('accion', filtros.accion)
+    if (filtros?.registroId) params.append('registroId', filtros.registroId.toString())
+    if (filtros?.usuario) params.append('usuario', filtros.usuario)
+    if (filtros?.fechaInicio) params.append('fechaInicio', filtros.fechaInicio)
+    if (filtros?.fechaFin) params.append('fechaFin', filtros.fechaFin)
+    if (filtros?.limite) params.append('limite', filtros.limite.toString())
+    if (filtros?.offset) params.append('offset', filtros.offset.toString())
+
+    const response = await api.get(`/audit/logs?${params.toString()}`)
+    return {
+      data: response.data.data || [],
+      total: response.data.total || 0
+    }
+  },
+
+  // Obtener logs específicos de productos
+  getProductLogs: async (filtros?: Omit<AuditFilters, 'tabla'>): Promise<{ data: AuditLog[], total: number }> => {
+    const params = new URLSearchParams()
+    if (filtros?.accion) params.append('accion', filtros.accion)
+    if (filtros?.registroId) params.append('registroId', filtros.registroId.toString())
+    if (filtros?.fechaInicio) params.append('fechaInicio', filtros.fechaInicio)
+    if (filtros?.fechaFin) params.append('fechaFin', filtros.fechaFin)
+    if (filtros?.limite) params.append('limite', filtros.limite.toString())
+    if (filtros?.offset) params.append('offset', filtros.offset.toString())
+
+    const response = await api.get(`/audit/productos?${params.toString()}`)
+    return {
+      data: response.data.data || [],
+      total: response.data.total || 0
+    }
+  },
+
+  // Obtener estadísticas de auditoría
+  getStats: async (): Promise<AuditStats[]> => {
+    const response = await api.get('/audit/estadisticas')
+    return response.data.data || []
+  },
+
+  // Obtener historial de un registro específico
+  getRecordHistory: async (tabla: string, id: number): Promise<AuditLog[]> => {
+    const response = await api.get(`/audit/historial/${tabla}/${id}`)
+    return response.data.data || []
+  }
+}
+
 // Función helper para formatear errores de API
 export const formatApiError = (error: any): string => {
   if (error.response?.data?.error) {
@@ -257,5 +311,6 @@ export default {
   eoqAvanzado: eoqAvanzadoAPI,
   alerts: alertsAPI,
   reports: reportsAPI,
+  audit: auditAPI,
   formatApiError
 }

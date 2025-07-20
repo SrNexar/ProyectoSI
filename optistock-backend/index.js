@@ -6,6 +6,7 @@ const productRoutes = require('./routes/productRoutes');
 const eoqRoutes = require('./routes/eoqRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const chatbotRoutes = require('./routes/chatbotRoutes');
+const auditRoutes = require('./routes/auditRoutes');
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/eoq', eoqRoutes);
 app.use('/api/alertas', alertRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/audit', auditRoutes);
 
 // Ruta principal
 app.get('/', (req, res) => {
@@ -28,7 +30,8 @@ app.get('/', (req, res) => {
       productos: '/api/products',
       eoq: '/api/eoq',
       alertas: '/api/alertas',
-      chatbot: '/api/chatbot'
+      chatbot: '/api/chatbot',
+      auditoria: '/api/audit'
     }
   });
 });
@@ -63,6 +66,17 @@ app.get('/api', (req, res) => {
           chat: '/api/chatbot/chat',
           sugerencias: '/api/chatbot/sugerencias',
           historial: '/api/chatbot/historial'
+        }
+      },
+      auditoria: {
+        url: '/api/audit',
+        métodos: ['GET'],
+        descripción: 'Sistema de logs de auditoría',
+        endpoints: {
+          logs: '/api/audit/logs',
+          productos: '/api/audit/productos',
+          estadisticas: '/api/audit/estadisticas',
+          historial: '/api/audit/historial/:tabla/:id'
         }
       }
     },
